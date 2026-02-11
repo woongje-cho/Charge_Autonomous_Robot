@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="description" content="ChargeMate - 자율주행 이동형 충전 로봇">
+  
+  <!-- PWA Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ChargeMate">
+  
+  <title>ChargeMate</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔋</text></svg>">
+  
+  <!-- Leaflet CSS (for map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+        crossorigin="">
+  
+  <!-- App Styles -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <h1>
+        <span>🔋</span>
+        ChargeMate
+      </h1>
+      <span id="connection-status" class="status-badge disconnected">
+        <span class="status-dot"></span>
+        연결 중...
+      </span>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container">
+    <!-- Robot Status Card -->
+    <section class="card">
+      <div class="card-header">
+        <span>🤖</span>
+        로봇 상태
+      </div>
+      <div class="card-body robot-status">
+        <div id="robot-icon" class="robot-icon">🔋</div>
+        <div id="robot-state" class="robot-state idle">대기 중</div>
+        
+        <div class="robot-info">
+          <div class="info-item">
+            <div class="info-label">로봇 배터리</div>
+            <div id="robot-soc" class="info-value">---%</div>
+            <div class="battery-bar">
+              <div id="robot-battery-bar" class="battery-fill" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-label">충전 배터리</div>
+            <div id="output-soc" class="info-value">---%</div>
+            <div class="battery-bar">
+              <div id="output-battery-bar" class="battery-fill" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Map Card -->
+    <section class="card">
+      <div class="card-header">
+        <span>📍</span>
+        위치
+      </div>
+      <div class="card-body">
+        <div class="map-container">
+          <div id="map"></div>
+          <button id="location-btn" class="location-btn" title="내 위치">
+            📍
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- My Request Card -->
+    <section class="card">
+      <div class="card-header">
+        <span>📱</span>
+        내 요청
+      </div>
+      <div class="card-body">
+        <div id="my-request-card">
+          <div class="empty-state">
+            <div class="empty-state-icon">📱</div>
+            <p>활성 요청이 없습니다</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Queue Status Card -->
+    <section class="card">
+      <div class="card-header">
+        <span>📋</span>
+        대기열
+      </div>
+      <div class="card-body">
+        <div class="queue-stats">
+          <div class="queue-stat">
+            <div id="queue-pending" class="queue-stat-value">0</div>
+            <div class="queue-stat-label">대기 중</div>
+          </div>
+          <div class="queue-stat">
+            <div id="queue-completed" class="queue-stat-value">0</div>
+            <div class="queue-stat-label">오늘 완료</div>
+          </div>
+          <div class="queue-stat">
+            <div class="queue-stat-value">~10</div>
+            <div class="queue-stat-label">분/요청</div>
+          </div>
+        </div>
+        <div id="request-list">
+          <!-- Request items will be inserted here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Emergency Button -->
+    <section class="card">
+      <div class="card-body">
+        <button id="emergency-btn" class="btn btn-danger btn-block">
+          🛑 비상 정지
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Fixed Bottom Action -->
+  <div class="bottom-action">
+    <div class="container">
+      <button id="request-btn" class="btn btn-primary btn-block btn-lg">
+        ⚡ 충전 요청하기
+      </button>
+    </div>
+  </div>
+
+  <!-- Request Modal -->
+  <div id="modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">충전 요청</span>
+        <button id="modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="user-name">이름 (선택)</label>
+          <input type="text" id="user-name" class="form-input" placeholder="익명">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="device-type">기기 종류</label>
+          <select id="device-type" class="form-input">
+            <option value="phone">스마트폰</option>
+            <option value="tablet">태블릿</option>
+            <option value="laptop">노트북</option>
+            <option value="other">기타</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">현재 위치</label>
+          <div id="location-text" class="form-input" style="background: var(--gray-50); color: var(--gray-600);">
+            위치 가져오는 중...
+          </div>
+        </div>
+        
+        <p style="font-size: 0.875rem; color: var(--gray-500); margin-top: 1rem;">
+          충전 로봇이 현재 위치로 찾아갑니다. 도착 시 손을 흔들어 주세요!
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+        <button id="submit-request" class="btn btn-primary">요청하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
+  
+  <!-- App Script -->
+  <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+# ============================================================
+# ChargeMate - 자율주행 이동형 충전 로봇 설정
+# ============================================================
+
+# ------------------------------------------------------------
+# 로봇 기본 설정
+# ------------------------------------------------------------
+robot:
+  name: "ChargeMate-01"
+  home_latitude: 37.5665      # 홈 위치 (위도) - 충전 스테이션
+  home_longitude: 126.9780    # 홈 위치 (경도)
+  arrival_radius_m: 3.0       # 도착 판정 반경 (미터)
+  approach_radius_m: 1.5      # 사용자 접근 완료 반경 (미터)
+
+# ------------------------------------------------------------
+# 카메라 설정 (Intel RealSense D435)
+# ------------------------------------------------------------
+camera:
+  source: "realsense"         # "realsense" | 0 (웹캠) | "video.mp4"
+  width: 640
+  height: 480
+  fps: 30
+  enable_depth: true
+  depth_min_m: 0.3
+  depth_max_m: 10.0
+
+# ------------------------------------------------------------
+# YOLOv8 사람 감지 설정
+# ------------------------------------------------------------
+detection:
+  model_path: "yolov8n-pose.pt"
+  confidence: 0.5
+  device: null                # null=자동, "cuda:0", "cpu"
+  tracker: "botsort.yaml"
+
+# ------------------------------------------------------------
+# 추적 설정
+# ------------------------------------------------------------
+tracking:
+  max_age_seconds: 5.0
+  position_history_size: 150
+  keypoint_history_size: 30
+
+# ------------------------------------------------------------
+# LiDAR 설정 (RPLidar A2)
+# ------------------------------------------------------------
+lidar:
+  enabled: true
+  # port: "/dev/ttyUSB0"      # Linux
+  port: "COM3"                # Windows
+  baudrate: 115200
+  range_min_m: 0.15
+  range_max_m: 12.0
+  scan_rate_hz: 10.0
+
+# ------------------------------------------------------------
+# GPS 설정 (ZED F9P)
+# ------------------------------------------------------------
+gps:
+  enabled: true
+  # port: "/dev/ttyACM1"      # Linux
+  port: "COM4"                # Windows
+  baudrate: 9600
+  update_rate_hz: 1.0
+
+# ------------------------------------------------------------
+# 모터 제어 설정 (Arduino)
+# ------------------------------------------------------------
+motor:
+  enabled: true
+  # port: "/dev/ttyACM0"      # Linux
+  port: "COM5"                # Windows
+  baudrate: 9600
+  patrol_speed: 80            # 순찰/이동 속도 (0-255)
+  approach_speed: 50          # 사용자 접근 속도
+  return_speed: 100           # 복귀 속도
+
+# ------------------------------------------------------------
+# 손 감지 설정 (MediaPipe)
+# ------------------------------------------------------------
+hand_detection:
+  enabled: true
+  model_complexity: 0         # 0=라이트, 1=풀
+  min_detection_confidence: 0.5
+  min_tracking_confidence: 0.5
+  wave_threshold: 3           # 손 흔들기 인식 횟수
+
+# ------------------------------------------------------------
+# 배터리 모니터링 설정
+# ------------------------------------------------------------
+battery:
+  # 로봇 자체 배터리
+  robot_battery:
+    enabled: true
+    sensor_type: "mock"       # "ina219" | "adc" | "mock"
+    i2c_address: 0x40
+    min_voltage: 10.5         # 최소 전압 (3S 리포 기준)
+    max_voltage: 12.6         # 최대 전압
+    low_battery_threshold: 20  # 저전력 경고 (%)
+    critical_threshold: 10    # 긴급 복귀 (%)
+  
+  # 충전 출력 배터리
+  output_battery:
+    enabled: true
+    sensor_type: "mock"       # "ina219" | "mock"
+    i2c_address: 0x41
+    capacity_mah: 20000       # 배터리 용량 (mAh)
+    usb_pd_voltage: 20        # USB PD 출력 전압 (V)
+    max_current_ma: 3000      # 최대 출력 전류 (mA)
+
+# ------------------------------------------------------------
+# 충전 설정
+# ------------------------------------------------------------
+charging:
+  detection_current_threshold_ma: 100  # 충전 감지 전류 임계값
+  complete_current_threshold_ma: 50    # 충전 완료 전류 임계값
+  complete_duration_s: 5               # 충전 완료 유지 시간
+  max_charging_time_s: 7200            # 최대 충전 시간 (2시간)
+  target_soc_percent: 80               # 목표 충전량 (%)
+
+# ------------------------------------------------------------
+# 상태 머신 설정
+# ------------------------------------------------------------
+behavior:
+  dispatch_timeout_s: 300       # 배차 타임아웃 (5분)
+  navigation_timeout_s: 600    # 네비게이션 타임아웃 (10분)
+  approaching_timeout_s: 120   # 사용자 접근 타임아웃 (2분)
+  docking_timeout_s: 60        # 도킹 타임아웃 (1분)
+  charging_timeout_s: 7200     # 충전 타임아웃 (2시간)
+
+# ------------------------------------------------------------
+# TTS 설정
+# ------------------------------------------------------------
+tts:
+  enabled: true
+  engine: "pyttsx3"           # pyttsx3 | gtts | espeak
+  language: "ko"
+  rate: 150
+  volume: 0.9
+
+# ------------------------------------------------------------
+# API 서버 설정
+# ------------------------------------------------------------
+api:
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins:
+    - "*"
+  request_queue_size: 10      # 최대 대기열 크기
+
+# ------------------------------------------------------------
+# 알림 설정
+# ------------------------------------------------------------
+alerts:
+  enabled: true
+  console: true
+  log_file: "logs/chargemate.log"
+
+# ------------------------------------------------------------
+# 시각화 설정
+# ------------------------------------------------------------
+visualization:
+  show_camera: true
+  show_lidar_map: true
+  show_status_overlay: true
+  show_skeleton: true
+  show_hand_landmarks: true
+  window_name: "ChargeMate"

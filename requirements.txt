@@ -1,0 +1,45 @@
+# ============================================================
+# ChargeMate - Python Dependencies
+# ============================================================
+# 설치: pip install -r requirements.txt
+# ============================================================
+
+# --- Core Framework ---
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+pydantic>=2.0.0
+
+# --- Computer Vision ---
+opencv-python>=4.8.0
+numpy>=1.24.0
+ultralytics>=8.0.0  # YOLOv8
+
+# --- Machine Learning ---
+mediapipe>=0.10.0  # Hand detection
+
+# --- Hardware (Optional - install as needed) ---
+# pyrealsense2>=2.50.0  # Intel RealSense (Windows/Linux)
+# rplidar>=0.9.5  # RPLidar A2
+# smbus2>=0.4.0  # I2C (Linux)
+# ina219>=1.4.0  # Battery sensor
+
+# --- Serial Communication ---
+pyserial>=3.5
+
+# --- GPS ---
+pynmea2>=1.18.0
+
+# --- TTS (Text-to-Speech) ---
+pyttsx3>=2.90
+gTTS>=2.3.0  # Google TTS fallback
+
+# --- Configuration ---
+PyYAML>=6.0
+
+# --- Logging ---
+colorlog>=6.7.0  # Optional: colored logging
+
+# --- Development (Optional) ---
+# pytest>=7.0.0
+# black>=23.0.0
+# ruff>=0.0.280
